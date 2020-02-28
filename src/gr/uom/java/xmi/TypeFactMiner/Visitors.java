@@ -1,11 +1,14 @@
 package gr.uom.java.xmi.TypeFactMiner;
 
+import com.t2r.common.models.ast.TypeGraphOuterClass.TypeGraph;
+import com.t2r.common.utilities.PrettyPrinter;
 import org.eclipse.jdt.core.dom.*;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 
 public class Visitors {
 
@@ -40,7 +43,7 @@ public class Visitors {
 
     public static class UsedTypes extends ASTVisitor {
 
-        Set<String> typesUsed = new HashSet<>();
+        public Set<String> typesUsed = new HashSet<>();
 
         @Override
         public boolean visit(SimpleType st) {
@@ -59,6 +62,62 @@ public class Visitors {
             typesUsed.add(nqt.getName().getFullyQualifiedName());
             return true;
         }
+    }
+
+
+
+    public static class UsedTypesCounter extends ASTVisitor {
+
+        private final Predicate<TypeGraph> pred;
+        public int counter = 0;
+
+        public UsedTypesCounter(TypeGraph tg){
+            this.pred = t -> PrettyPrinter.looselyEqual(tg, t);
+        }
+
+
+        @Override
+        public boolean visit(PrimitiveType st) {
+            if(pred.test(TypeGraphUtil.getTypeGraph(st)))
+                counter += 1;
+            return true;
+        }
+
+        @Override
+        public boolean visit(SimpleType st) {
+            if(pred.test(TypeGraphUtil.getTypeGraph(st)))
+                counter += 1;
+            return true;
+        }
+
+        @Override
+        public boolean visit(ArrayType st) {
+            if(pred.test(TypeGraphUtil.getTypeGraph(st)))
+                counter += 1;
+            return true;
+        }
+
+        @Override
+        public boolean visit(ParameterizedType st) {
+            if(pred.test(TypeGraphUtil.getTypeGraph(st)))
+                counter += 1;
+            return true;
+        }
+
+        @Override
+        public boolean visit(QualifiedType qt) {
+            if(pred.test(TypeGraphUtil.getTypeGraph(qt)))
+                counter+= 1;
+            return true;
+        }
+
+        @Override
+        public boolean visit(NameQualifiedType nqt) {
+            if(pred.test(TypeGraphUtil.getTypeGraph(nqt)))
+                counter += 1;
+            return true;
+        }
+
     }
 
 
